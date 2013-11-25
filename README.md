@@ -1,5 +1,7 @@
 # Description #
 
+Based on a cookbook by: Sebastian Wendel, (<packages@sourceindex.de>)
+
 A cookbook for Opscodes Chef open-source systems integration framework to install and configure the Graylog2 Server and Web-Interface.
 
 Graylog2 is an open source log management solution that stores your logs in ElasticSearch. It consists of a server written in Java that accepts your syslog messages via TCP, UDP or AMQP and stores it in the database. The second part is a web interface that allows you to manage the log messages from your web browser.
@@ -94,10 +96,10 @@ If you want to help have a lock at the github issues section, patches are more t
 # License and Author #
 
 Author: Miguel Armas <kuko@canarytek.com>
-Author: Sebastian Wendel, (<packages@sourceindex.de>)
 
-Copyright: 2012, SourceIndex IT-Serives
 Copyright: 2013, CanaryTek
+
+Based on a cookbook by: Sebastian Wendel, (<packages@sourceindex.de>)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
