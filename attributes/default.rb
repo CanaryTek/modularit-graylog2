@@ -16,19 +16,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+## Override attributes for dependency cookbooks
+# Use JDK version 7 (needed by graylog2-web-interface)
+set['java']['jdk_version'] = '7'
+# Use a recent elasticsearch version
+set.elasticsearch[:version]       = "0.90.10"
+set.elasticsearch[:host]          = "http://download.elasticsearch.org"
+set.elasticsearch[:repository]    = "elasticsearch/elasticsearch"
+set.elasticsearch[:filename]      = "elasticsearch-#{node.elasticsearch[:version]}.tar.gz"
+set.elasticsearch[:download_url]  = [node.elasticsearch[:host], node.elasticsearch[:repository], node.elasticsearch[:filename]].join('/')
 
 default['graylog2']['project_url'] = "http://github.com/Graylog2"
 
-default['graylog2']['server_version'] = "0.12.0"
-default['graylog2']['server_file'] = "graylog2-server-#{node['graylog2']['server_version']}.tar.gz"
+default['graylog2']['server_version'] = "0.20.0-rc.1"
+default['graylog2']['server_file'] = "graylog2-server-#{node['graylog2']['server_version']}.tgz"
 default['graylog2']['server_download'] = "#{node['graylog2']['project_url']}/graylog2-server/releases/download/#{node['graylog2']['server_version']}/#{node['graylog2']['server_file']}"
 #default['graylog2']['server_checksum'] = "b2f8951a7effc1c3b617482bea0c79427f801f4034525adb163d041c34707fc1"
 
 default['graylog2']['servicewrapper_url'] = "http://wrapper.tanukisoftware.com/download"
 
-default['graylog2']['web_version'] = "0.12.0"
-default['graylog2']['web_file'] = "graylog2-web-interface-#{node['graylog2']['web_version']}.tar.gz"
+# Password for web admin user
+default['graylog2']['web_password']="changeme"
+
+default['graylog2']['web_version'] = "0.20.0-rc.1"
+default['graylog2']['web_file'] = "graylog2-web-interface-#{node['graylog2']['web_version']}.tgz"
 default['graylog2']['web_download'] = "#{node['graylog2']['project_url']}/graylog2-web-interface/releases/download/#{node['graylog2']['web_version']}/#{node['graylog2']['web_file']}"
 default['graylog2']['web_checksum'] = "b2f8951a7effc1c3b617482bea0c79427f801f4034525adb163d041c34707fc1"
 
@@ -44,9 +56,13 @@ default['graylog2']['server_user'] = "graylog2"
 default['graylog2']['server_group'] = "graylog2"
 default['graylog2']['server_port'] = 5140
 
-default['graylog2']['ruby_version'] = "ruby-1.9.3-p484"
-default['graylog2']['passenger_version'] = "3.0.18"
-default['graylog2']['web_path'] = "/home/graylog2-web"
+default['graylog2']['web_path'] = "/usr/share/graylog2-web"
+default['graylog2']['web_bin'] = "#{node['graylog2']['web_path']}/bin"
+default['graylog2']['web_wrapper'] = "#{node['graylog2']['web_path']}/wrapper"
+default['graylog2']['web_etc'] = "/etc/graylog2-web"
+default['graylog2']['web_pid'] = "/var/run/graylog2-web"
+default['graylog2']['web_lock'] = "/var/lock/graylog2-web"
+default['graylog2']['web_logs'] = "/var/log/graylog2-web"
 default['graylog2']['web_user'] = "graylog2-web"
 default['graylog2']['web_group'] = "graylog2-web"
 
@@ -70,6 +86,8 @@ default['graylog2']['mongo_passwd'] = "graylog2"
 default['graylog2']['mongo_replica'] = "localhost:27017,localhost:27018,localhost:27019"
 default['graylog2']['mongo_collection'] = "50000000"
 
+
+default['graylog2']['elastic_host'] = "127.0.0.1"
 default['graylog2']['elastic_host'] = "127.0.0.1"
 default['graylog2']['elastic_port'] = 9200
 default['graylog2']['elastic_index'] = "graylog2"

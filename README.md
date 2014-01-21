@@ -8,6 +8,14 @@ Graylog2 is an open source log management solution that stores your logs in Elas
 
 http://www.graylog2.org
 
+# Changes #
+
+There have been a lot of changes for Graylog 0.20.0
+
+* Use JRE 1.7.0
+* Use Elasticsearch 0.90.10
+* graylog2-web-interface is now a java app, so it's managed the same way as graylog2-server
+
 # Requirements #
 
 ## Platform ##
@@ -33,9 +41,6 @@ To install the coockbook use the following commands, depending to your platform:
     cookbook 'java', :git => 'https://github.com/opscode-cookbooks/java.git'
     cookbook 'elasticsearch', :git => 'https://github.com/sebwendel/chef-elasticsearch.git'
     cookbook 'mongodb', :git => 'https://github.com/sebwendel/chef-mongodb.git'
-    cookbook 'rvm', :git => 'https://github.com/fnichol/chef-rvm.git'
-    cookbook 'apache2', :git => 'https://github.com/opscode-cookbooks/apache2.git'
-    cookbook 'graylog2', :git => 'https://github.com/sebwendel/chef-graylog2.git'
     END_OF_CHEFFILE
 
     librarian-chef install
@@ -64,10 +69,6 @@ The Cookbook comes with a bunch of attributes the following are the the most imp
 * `default['graylog2']['email_passwd']` - Specify the mail server password for authentication, default is "nil".
 * `default['graylog2']['email_address']` - Specify the senders mail address, default is "graylog2@#{node['fqdn']}".
 * `default['graylog2']['email_domain']` - Specify the senders mail domain, default is "127.0.0.1".
-
-## Reports ##
-* `default['graylog2']['stream_alarms_cron_minute']` - Specify the cron cycle to send alarm, default is 15 minutes.
-* `default['graylog2']['stream_subscriptions_cron_minute']` - Specify the cron cycle to send subscriptions, default is 15 minutes.
 
 For a better understanding of which configuration parameters are available have a look in the default attributes file.
 

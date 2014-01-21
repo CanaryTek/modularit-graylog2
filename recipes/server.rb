@@ -37,8 +37,6 @@ root_dirs = [
   node['graylog2']['server_path'],
   node['graylog2']['server_bin'],
   node['graylog2']['server_wrapper'],
-  node['graylog2']['server_path'],
-  node['graylog2']['server_etc']
 ]
 
 root_dirs.each do |dir|
@@ -52,7 +50,8 @@ end
 user_dirs = [
   node['graylog2']['server_pid'],
   node['graylog2']['server_lock'],
-  node['graylog2']['server_logs']
+  node['graylog2']['server_logs'],
+  node['graylog2']['server_etc']
 ]
 
 user_dirs.each do |dir|
@@ -68,7 +67,7 @@ unless FileTest.exists?("#{node['graylog2']['server_bin']}/graylog2-server.jar")
     cwd Chef::Config[:file_cache_path]
     code <<-EOH
       wget -O #{node['graylog2']['server_file']} #{node['graylog2']['server_download']}
-      tar -zxf graylog2-server-*.tar.gz
+      tar -zxf graylog2-server-*.tgz
       rm -rf graylog2-server-*/graylog2.conf.example
       mv -f graylog2-server-*/bin/* graylog2-server-*/*.jar #{node['graylog2']['server_bin']}
       mv -f graylog2-server-*/plugin #{node['graylog2']['server_path']}

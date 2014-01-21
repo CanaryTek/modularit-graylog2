@@ -2,7 +2,7 @@
 # Cookbook Name:: graylog2
 # Recipe:: web-interface
 #
-# Copyright 2012, SourceIndex IT-Services
+# Copyright 2012, SourceIndex IT-Serives
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,195 +16,118 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#
-include_recipe "build-essential"
-include_recipe "apache2"
-include_recipe "apache2::mod_ssl"
-include_recipe "apache2::mod_rewrite"
 
-case node['platform']
-when "debian", "ubuntu"
-  include_recipe 'apt'
-  #packages = %w{apache2-dev libcurl4-openssl-dev}
-  packages = %w{apache2-threaded-dev libcurl4-openssl-dev}
-    packages.each do |pkg|
-    package pkg do
-      action :install
-    end
-  end
-when "centos","redhat"
-  include_recipe 'yum'
-  include_recipe "yum::epel"
-  packages = %w{httpd httpd-devel curl-devel crontabs gcc-c++ openssl-devel zlib-devel}
-    packages.each do |pkg|
-    package pkg do
-      action :install
-    end
+include_recipe "java"
+
+group node['graylog2']['web_group'] do
+    system true
+end
+
+user node['graylog2']['web_user'] do
+    home node['graylog2']['web_path']
+    comment "services user for graylog2-web"
+    gid node['graylog2']['web_group']
+    system true
+end
+
+root_dirs = [
+  node['graylog2']['web_path'],
+  node['graylog2']['web_bin'],
+  node['graylog2']['web_wrapper'],
+]
+
+root_dirs.each do |dir|
+  directory dir do
+    owner "root"
+    group "root"
+    mode "0755"
   end
 end
-package "postfix"
 
-case node['platform']
-when "centos","redhat"
-  bash "Workaround for http://tickets.opscode.com/browse/COOK-1210" do 
+user_dirs = [
+  node['graylog2']['web_pid'],
+  node['graylog2']['web_lock'],
+  node['graylog2']['web_logs'],
+  node['graylog2']['web_path'],
+  node['graylog2']['web_etc']
+]
+
+user_dirs.each do |dir|
+  directory dir do
+    owner node['graylog2']['web_user']
+    group node['graylog2']['web_group']
+    mode "0755"
+  end
+end
+
+unless FileTest.exists?("#{node['graylog2']['web_bin']}/graylog2-web-interface")
+  bash "install graylog2-web-interface sources from #{node['graylog2']['web_download']}" do
+    cwd Chef::Config[:file_cache_path]
     code <<-EOH
-      echo 0 > /selinux/enforce
+      wget -O #{node['graylog2']['web_file']} #{node['graylog2']['web_download']}
+      tar -zxf graylog2-web-interface-*.tgz
+      rm -rf graylog2-web-interface-*/graylog2.conf.example
+      mv -f graylog2-web-interface-*/{bin,lib,share} #{node['graylog2']['web_path']}
+      chown -R #{node['graylog2']['web_user']}:#{node['graylog2']['web_group']} #{node['graylog2']['web_path']}
     EOH
   end
 end
 
-execute "create graylog2 ssl request" do
-  command "openssl genrsa > #{node['apache']['dir']}/ssl/graylog2.key"
-  not_if { ::File.exists?("#{node['apache']['dir']}/ssl/graylog2.key") }
+unless FileTest.exists?("#{node['graylog2']['web_wrapper']}/lib/wrapper.jar")
+  bash "extract java service wrapper" do
+    cwd Chef::Config[:file_cache_path]
+    code <<-EOH
+      rm -rf wrapper-delta-pack-*
+      wget #{node['graylog2']['servicewrapper_url']}/$(wget -qO- http://sourceforge.net/projects/wrapper/  | grep 'small title' | cut -d'"' -f2 | cut -d'_' -f2)/wrapper-delta-pack-$(wget -qO- http://sourceforge.net/projects/wrapper/  | grep 'small title' | cut -d'"' -f2 | cut -d'_' -f2).tar.gz
+      tar -zxf wrapper-delta-pack-*
+      #rm -rf wrapper-delta-pack-*/conf \
+      #       wrapper-delta-pack-*/src \
+      #       wrapper-delta-pack-*/jdoc \
+      #       wrapper-delta-pack-*/doc \
+      #       wrapper-delta-pack-*/logs \
+      #       wrapper-delta-pack-*/jdoc.tar.gz \
+      #       wrapper-delta-pack-*/bin/*.exe \
+      #       wrapper-delta-pack-*/bin/*.bat \
+      #       wrapper-delta-pack-*/lib/*.dll \
+      #       wrapper-delta-pack-*/lib/*demo*.* \
+      #       wrapper-delta-pack-*/bin/*test*.* 
+      mv wrapper-delta-pack-*/* #{node['graylog2']['web_wrapper']}
+      chown -R root:root #{node['graylog2']['web_wrapper']}
+      chmod -R 755 #{node['graylog2']['web_wrapper']}
+    EOH
+  end
 end
 
-execute "create graylog2 ssl certficate" do
-  command %Q{openssl req -new -x509 -key #{node['apache']['dir']}/ssl/graylog2.key -out #{node['apache']['dir']}/ssl/graylog2.pem -days 3650 <<EOF
-US
-Washington
-Seattle
-Opscode, Inc
-
-example.com
-webmaster@example.com
-EOF}
-  not_if { ::File.exists?("#{node['apache']['dir']}/ssl/graylog2.pem") }
+link "#{node['graylog2']['web_path']}/conf" do
+  to node['graylog2']['web_etc']
 end
 
-template "#{node[:apache][:dir]}/sites-available/graylog2.conf" do
-  source "graylog2-apache2.conf.erb"
-  mode 0644
+link "#{node['graylog2']['web_path']}/logs" do
+  to node['graylog2']['web_logs']
+end
+
+template "#{node['graylog2']['web_etc']}/graylog2-wrapper.conf" do
+  source "graylog2-web-wrapper.conf.erb"
   owner "root"
   group "root"
-end
-
-group node['graylog2']['web_group'] do
-  system true
-end
-
-user node['graylog2']['web_user'] do
-  home node['graylog2']['web_path']
-  gid node['graylog2']['web_group']
-  comment "services user for thr graylog2-web-interface"
-  supports :manage_home => true
-  shell "/bin/bash"
-end
-
-# Make sure apache can read directory
-directory "/home/#{node['graylog2']['web_user']}" do
-  mode "0755"
-end
-
-unless FileTest.exists?("#{node['graylog2']['web_path']}/graylog2-web-interface/Gemfile")
-  bash "install graylog2 sources from #{node['graylog2']['web_download']}" do
-    cwd node['graylog2']['web_path']
-    code <<-EOH
-      wget -O #{node['graylog2']['web_file']} #{node['graylog2']['web_download']}
-      tar -zxf graylog2-web-interface-*.tar.gz
-      rm -f graylog2-web-interface-*.tar.gz
-      mv graylog2-web-interface-* graylog2-web-interface
-      chown -R root:root graylog2-web-interface
-      chmod -R 755 graylog2-web-interface
-      EOH
-    end
-end
-
-template "Create graylog2-web general config." do
-  path "#{node['graylog2']['web_path']}/graylog2-web-interface/config/general.yml"
-  source "general.yml.erb"
-  owner node['graylog2']['web_user']
-  group node['graylog2']['web_group']
   mode 0644
 end
 
-template "Create graylog2-web mongodb config." do
-  path "#{node['graylog2']['web_path']}/graylog2-web-interface/config/mongoid.yml"
-  source "mongoid.yml.erb"
-  owner node['graylog2']['web_user']
-  group node['graylog2']['web_group']
+template "#{node['graylog2']['web_etc']}/graylog2-web-interface.conf" do
+  source "graylog2-web-interface.conf.erb"
+  owner "root"
+  group "root"
   mode 0644
 end
 
-template "Create graylog2-web indexer config." do
-  path "#{node['graylog2']['web_path']}/graylog2-web-interface/config/indexer.yml"
-  source "indexer.yml.erb"
-  owner node['graylog2']['web_user']
-  group node['graylog2']['web_group']
-  mode 0644
+template "/etc/init.d/graylog2-web" do
+    source "graylog2-web-init.erb"
+    owner "root"
+    group "root"
+    mode 0755
 end
 
-template "Create graylog2-web email config." do
-  path "#{node['graylog2']['web_path']}/graylog2-web-interface/config/email.yml"
-  source "email.yml.erb"
-  owner node['graylog2']['web_user']
-  group node['graylog2']['web_group']
-  mode 0644
+service "graylog2-web" do
+  supports :start => true
+  action [:enable, :start]
 end
-
-node.default['rvm']['user_installs'] = [
-  { 'user' => node['graylog2']['web_user'],
-    'default_ruby'  => '1.9.3',
-    'rubies'        => ['1.9.3']
-  }
-]
-
-include_recipe "rvm::user"
-
-execute "graylog2-web-interface owner-change" do
-    command "chown -Rf #{node['graylog2']['web_user']}:#{node['graylog2']['web_group']} #{node['graylog2']['web_path']}"
-end
-
-rvm_shell "run bundler install" do
-  user node['graylog2']['web_user']
-  group node['graylog2']['web_group']
-  cwd "#{node['graylog2']['web_path']}/graylog2-web-interface"
-  code %{bundle install}
-end
-
-rvm_shell "passenger module install" do
-  user node['graylog2']['web_user']
-  group node['graylog2']['web_group']
-  creates "#{node['graylog2']['web_path']}/.rvm/gems/#{node['graylog2']['ruby_version']}/gems/passenger-#{node['graylog2']['passenger_version']}/ext/apache2/mod_passenger.so"
-  cwd node['graylog2']['web_path']
-  code %{passenger-install-apache2-module --auto}
-end
-
-cron "Graylog2 send stream alarms" do
-  user node['graylog2']['web_user']
-  minute node['graylog2']['stream_alarms_cron_minute']
-  action node['graylog2']['send_stream_alarms'] ? :create : :delete
-  command "source ~/.bashrc && cd #{node['graylog2']['web_path']}/current && RAILS_ENV=production rake streamalarms:send"
-end
-
-cron "Graylog2 send stream subscriptions" do
-  user node['graylog2']['web_user']
-  minute node['graylog2']['stream_subscriptions_cron_minute']
-  action node['graylog2']['send_stream_subscriptions'] ? :create : :delete
-  command "source ~/.bashrc && cd #{node['graylog2']['web_path']}/current && RAILS_ENV=production rake subscriptions:send"
-end
-
-bash "install rake secret" do
-  cwd "#{node['graylog2']['web_path']}/graylog2-web-interface"
-  code <<-EOH
-      secret=`su -l graylog2-web -c "cd /home/graylog2-web/graylog2-web-interface/; rake secret"`
-      echo "Graylog2WebInterface::Application.config.secret_token = '$secret'" > config/initializers/secret_token.rb
-  EOH
-end
-
-apache_site "graylog2.conf" do
-  enable true
-end
-
-apache_site "000-default" do
-  enable false
-end
- 
-service "apache2" do 
-  action :reload
-end
-
-execute "disable iptables firewall" do
-  command "iptables -F"
-end
-
-

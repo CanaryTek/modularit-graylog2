@@ -63,10 +63,10 @@ wrapper.java.mainclass=org.tanukisoftware.wrapper.WrapperJarApp
 
 # Java Classpath (include wrapper.jar)  Add class path elements as
 #  needed starting from 1
-wrapper.java.classpath.1=<%= node['graylog2']['server_wrapper'] %>/lib/wrapper.jar
-wrapper.java.classpath.2=<%= node['graylog2']['server_bin'] %>/graylog2-server.jar
+wrapper.java.classpath.1=<%= node['graylog2']['web_wrapper'] %>/lib/wrapper.jar
+wrapper.java.classpath.2=<%= node['graylog2']['web_path'] %>/lib/*.jar
 # Java Library Path (location of Wrapper.DLL or libwrapper.so)
-wrapper.java.library.path.1=<%= node['graylog2']['server_wrapper'] %>/lib
+wrapper.java.library.path.1=<%= node['graylog2']['web_wrapper'] %>/lib
 
 # Java Bits.  On applicable platforms, tells the JVM to run in 32 or 64-bit mode.
 wrapper.java.additional.auto_bits=TRUE
@@ -79,12 +79,14 @@ wrapper.java.additional.auto_bits=TRUE
 # Maximum Java Heap Size (in MB)
 #wrapper.java.maxmemory=64
 
+# Set working dir
+wrapper.working.dir=<%= node['graylog2']['web_path'] %>
+
 # Application parameters.  Add parameters as needed starting from 1
-wrapper.app.parameter.1=<%= node['graylog2']['server_bin'] %>/graylog2-server.jar
-wrapper.app.parameter.2=--configfile
-wrapper.app.parameter.3=<%= node['graylog2']['server_etc'] %>/graylog2-server.conf
-wrapper.app.parameter.4=--pidfile
-wrapper.app.parameter.5=<%= node['graylog2']['server_pid'] %>/graylog2.pid
+wrapper.app.parameter.1=<%= node['graylog2']['web_path'] %>/lib/graylog2-web-interface.graylog2-web-interface-0.20.0-rc.1.jar
+#wrapper.app.parameter.2=-Dconfig.file=<%= node['graylog2']['web_etc'] %>/graylog2-web.conf
+#wrapper.app.parameter.4=--pidfile
+#wrapper.app.parameter.5=<%= node['graylog2']['web_pid'] %>/graylog2.pid
 
 #********************************************************************
 # Wrapper Logging Properties
@@ -99,7 +101,7 @@ wrapper.console.format=PM
 wrapper.console.loglevel=INFO
 
 # Log file to use for wrapper output logging.
-wrapper.logfile=<%= node['graylog2']['server_logs'] %>/graylog2-server-wrapper.log
+wrapper.logfile=<%= node['graylog2']['web_logs'] %>/graylog2-web-wrapper.log
 
 # Format of output for the log file.  (See docs for formats)
 wrapper.logfile.format=LPTM

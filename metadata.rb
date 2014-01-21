@@ -6,7 +6,7 @@ long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version           "0.1.0"
 recipe            "modularit-graylog2", "Installs and configures Graylog2"
 
-%w{apt yum java apache2 mongodb elasticsearch build-essential rvm}.each do |pkg|
+%w{apt yum java mongodb elasticsearch}.each do |pkg|
   depends pkg
 end
 
