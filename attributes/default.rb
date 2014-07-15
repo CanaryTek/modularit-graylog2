@@ -34,7 +34,7 @@ default['graylog2']['server_file'] = "graylog2-server-#{node['graylog2']['server
 default['graylog2']['server_download'] = "#{node['graylog2']['project_url']}/graylog2-server/releases/download/#{node['graylog2']['server_version']}/#{node['graylog2']['server_file']}"
 #default['graylog2']['server_checksum'] = "b2f8951a7effc1c3b617482bea0c79427f801f4034525adb163d041c34707fc1"
 
-default['graylog2']['servicewrapper_url'] = "http://wrapper.tanukisoftware.com/download"
+default['graylog2']['servicewrapper_url'] = "http://sourceforge.net/projects/wrapper/files/wrapper/Wrapper_3.5.25_20140612/wrapper-delta-pack-3.5.25.tar.gz/download"
 
 # Password for web admin user
 default['graylog2']['web_password']="changeme"

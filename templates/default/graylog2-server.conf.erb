@@ -8,7 +8,7 @@ node_id_file = <%= node['graylog2']['server_etc'] %>/graylog2-server-node-id
 
 # You MUST set a secret to secure/pepper the stored user passwords here. Use at least 64 characters.
 # Generate one by using for example: pwgen -s 96
-password_secret = <%= %x[openssl rand -hex 96] %>
+password_secret = <%= node['graylog2']['server_password_secret'] %>
 # the default root user is named 'admin'
 # root_username = admin
 # You MUST specify a hash password for the root user (which you only need to initially set up the

@@ -22,6 +22,10 @@ include_recipe "mongodb::10gen_repo"
 include_recipe "mongodb"
 include_recipe "elasticsearch"
 
+# Initialize secrets
+node.set_unless['graylog2']['server_password_secret'] = %x[openssl rand -hex 96]
+node.save
+
 group node['graylog2']['server_group'] do
     system true
 end
@@ -82,7 +86,7 @@ unless FileTest.exists?("#{node['graylog2']['server_wrapper']}/lib/wrapper.jar")
     cwd Chef::Config[:file_cache_path]
     code <<-EOH
       rm -rf wrapper-delta-pack-*
-      wget #{node['graylog2']['servicewrapper_url']}/$(wget -qO- http://sourceforge.net/projects/wrapper/  | grep 'small title' | cut -d'"' -f2 | cut -d'_' -f2)/wrapper-delta-pack-$(wget -qO- http://sourceforge.net/projects/wrapper/  | grep 'small title' | cut -d'"' -f2 | cut -d'_' -f2).tar.gz
+      wget #{node['graylog2']['servicewrapper_url']} -O wrapper-delta-pack-latest.tgz
       tar -zxf wrapper-delta-pack-*
       #rm -rf wrapper-delta-pack-*/conf \
       #       wrapper-delta-pack-*/src \
